@@ -71,31 +71,48 @@ export const createProduct = async (req, res) => {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
+    // Validación específica para productos destacados
+    if (status === 'featured') {
+      if (!req.files || !req.files['mainImage'] || !req.files['hoverImage'] || 
+          !req.files['images'] || req.files['images'].length === 0) {
+        return res.status(400).json({ 
+          error: 'Los productos destacados requieren mainImage, hoverImage y al menos una imagen en images' 
+        });
+      }
+    } else {
+      // Validación para productos activos
+      if (!req.files || !req.files['images'] || req.files['images'].length === 0) {
+        return res.status(400).json({ 
+          error: 'Los productos activos requieren al menos una imagen en images' 
+        });
+      }
+    }
+
     let mainImageUrl = null;
     let hoverImageUrl = null;
     let additionalImagesUrls = [];
 
-    // Procesar mainImage si se proporciona
+    // Procesar mainImage si se proporciona (solo para featured)
     if (req.files && req.files['mainImage']) {
       const mainImageUpload = await cloudinary.v2.uploader.upload(req.files['mainImage'][0].path);
       mainImageUrl = mainImageUpload.secure_url;
     }
 
-    // Procesar hoverImage si se proporciona
+    // Procesar hoverImage si se proporciona (solo para featured)
     if (req.files && req.files['hoverImage']) {
       const hoverImageUpload = await cloudinary.v2.uploader.upload(req.files['hoverImage'][0].path);
       hoverImageUrl = hoverImageUpload.secure_url;
     }
 
-    // Procesar imágenes adicionales si se proporcionan
+    // Procesar imágenes adicionales - CORRECCIÓN IMPORTANTE
     if (req.files && req.files['images']) {
-      const additionalImagesUploads = await uploadImages(req.files['images']);
+      // Asegurarse de que estamos manejando un array de imágenes
+      const imageFiles = Array.isArray(req.files['images']) 
+        ? req.files['images'] 
+        : [req.files['images']];
+      
+      const additionalImagesUploads = await uploadImages(imageFiles);
       additionalImagesUrls = additionalImagesUploads.map(img => img.secure_url);
-    }
-
-    // Validar que al menos hay una imagen (main o adicionales)
-    if (!mainImageUrl && additionalImagesUrls.length === 0) {
-      return res.status(400).json({ error: 'Se requiere al menos una imagen del producto' });
     }
 
     const product = await prisma.product.create({
