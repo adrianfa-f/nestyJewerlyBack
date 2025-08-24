@@ -11,7 +11,7 @@ export const storage = new CloudinaryStorage({
   cloudinary: cloudinary.v2,
   params: {
     folder: 'irene-shop',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp']
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'jfif']
   }
 });
 

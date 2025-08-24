@@ -47,13 +47,6 @@ export const getProductById = async (req, res) => {
   }
 };
 
-const uploadImages = async (files) => {
-  const uploadPromises = files.map(file => 
-    cloudinary.v2.uploader.upload(file.path)
-  );
-  return Promise.all(uploadPromises);
-};
-
 export const createProduct = async (req, res) => {
   const { 
     name, 
@@ -94,25 +87,17 @@ export const createProduct = async (req, res) => {
 
     // Procesar mainImage si se proporciona (solo para featured)
     if (req.files && req.files['mainImage']) {
-      const mainImageUpload = await cloudinary.v2.uploader.upload(req.files['mainImage'][0].path);
-      mainImageUrl = mainImageUpload.secure_url;
+      mainImageUrl = req.files['mainImage'][0].path; // URL ya generada por Multer
     }
 
     // Procesar hoverImage si se proporciona (solo para featured)
     if (req.files && req.files['hoverImage']) {
-      const hoverImageUpload = await cloudinary.v2.uploader.upload(req.files['hoverImage'][0].path);
-      hoverImageUrl = hoverImageUpload.secure_url;
+      hoverImageUrl = req.files['hoverImage'][0].path; // URL ya generada por Multer
     }
 
-    // Procesar imágenes adicionales - CORRECCIÓN IMPORTANTE
+    // Procesar imágenes adicionales
     if (req.files && req.files['images']) {
-      // Asegurarse de que estamos manejando un array de imágenes
-      const imageFiles = Array.isArray(req.files['images']) 
-        ? req.files['images'] 
-        : [req.files['images']];
-      
-      const additionalImagesUploads = await uploadImages(imageFiles);
-      additionalImagesUrls = additionalImagesUploads.map(img => img.secure_url);
+      additionalImagesUrls = req.files['images'].map(file => file.path); // URLs ya generadas por Multer
     }
 
     const product = await prisma.product.create({
@@ -165,18 +150,16 @@ export const updateProduct = async (req, res) => {
 
     // Actualizar imágenes si se proporcionan
     if (req.files && req.files['mainImage']) {
-      const upload = await cloudinary.v2.uploader.upload(req.files['mainImage'][0].path);
-      mainImage = upload.secure_url;
+      mainImage = req.files['mainImage'][0].path; // URL ya generada por Multer
     }
-    
+
     if (req.files && req.files['hoverImage']) {
-      const upload = await cloudinary.v2.uploader.upload(req.files['hoverImage'][0].path);
-      hoverImage = upload.secure_url;
+      hoverImage = req.files['hoverImage'][0].path; // URL ya generada por Multer
     }
-    
+
     if (req.files && req.files['images']) {
-      const uploads = await uploadImages(req.files['images']);
-      images = [...currentProduct.images, ...uploads.map(img => img.secure_url)];
+      const newImagesUrls = req.files['images'].map(file => file.path); // URLs ya generadas por Multer
+      images = [...currentProduct.images, ...newImagesUrls];
     }
 
     const product = await prisma.product.update({
