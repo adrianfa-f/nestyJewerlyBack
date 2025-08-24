@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  sku         String   @unique
+  stock       Int
+  category    String
+  status      String   @default("active") // active, featured (para home)
+  mainImage   String?  // URL de la imagen principal
+  hoverImage  String?  // URL de la imagen en hover (opcional)
+  images      String[] // Array de URLs de imágenes adicionales
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+}
+
+model Cart {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  items     Json
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  orderId     String   @unique // ID único para la orden (usaremos UUID)
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Float
+  currency    String   @default("EUR")
+  status      String   @default("pending") // pending, completed, failed, refunded
+  paymentId   String?  // ID de pago de Stripe
+  errorMessage String?
+  metadata    Json?    // Metadata adicional
+  paidAt      DateTime?
+  refundedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([orderId])
+  @@index([status])
+  @@index([createdAt])
+}
