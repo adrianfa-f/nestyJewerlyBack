@@ -66,13 +66,37 @@ export const createProduct = async (req, res) => {
   } = req.body;
 
   try {
-    // Subir imágenes
-    const mainImageUpload = await cloudinary.v2.uploader.upload(req.files['mainImage'][0].path);
-    const hoverImageUpload = req.files['hoverImage'] ? 
-      await cloudinary.v2.uploader.upload(req.files['hoverImage'][0].path) : null;
-    
-    const additionalImages = req.files['images'] ? 
-      await uploadImages(req.files['images']) : [];
+    // Validar campos obligatorios
+    if (!name || !description || !price || !sku || !stock || !category) {
+      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    }
+
+    let mainImageUrl = null;
+    let hoverImageUrl = null;
+    let additionalImagesUrls = [];
+
+    // Procesar mainImage si se proporciona
+    if (req.files && req.files['mainImage']) {
+      const mainImageUpload = await cloudinary.v2.uploader.upload(req.files['mainImage'][0].path);
+      mainImageUrl = mainImageUpload.secure_url;
+    }
+
+    // Procesar hoverImage si se proporciona
+    if (req.files && req.files['hoverImage']) {
+      const hoverImageUpload = await cloudinary.v2.uploader.upload(req.files['hoverImage'][0].path);
+      hoverImageUrl = hoverImageUpload.secure_url;
+    }
+
+    // Procesar imágenes adicionales si se proporcionan
+    if (req.files && req.files['images']) {
+      const additionalImagesUploads = await uploadImages(req.files['images']);
+      additionalImagesUrls = additionalImagesUploads.map(img => img.secure_url);
+    }
+
+    // Validar que al menos hay una imagen (main o adicionales)
+    if (!mainImageUrl && additionalImagesUrls.length === 0) {
+      return res.status(400).json({ error: 'Se requiere al menos una imagen del producto' });
+    }
 
     const product = await prisma.product.create({
       data: { 
@@ -83,9 +107,9 @@ export const createProduct = async (req, res) => {
         stock: parseInt(stock), 
         category,
         status: status || 'active',
-        mainImage: mainImageUpload?.secure_url,
-        hoverImage: hoverImageUpload?.secure_url,
-        images: additionalImages.map(img => img.secure_url)
+        mainImage: mainImageUrl,
+        hoverImage: hoverImageUrl,
+        images: additionalImagesUrls
       },
     });
     
@@ -114,22 +138,26 @@ export const updateProduct = async (req, res) => {
       where: { id: parseInt(id) }
     });
 
+    if (!currentProduct) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
     let mainImage = currentProduct.mainImage;
     let hoverImage = currentProduct.hoverImage;
     let images = currentProduct.images;
 
     // Actualizar imágenes si se proporcionan
-    if (req.files['mainImage']) {
+    if (req.files && req.files['mainImage']) {
       const upload = await cloudinary.v2.uploader.upload(req.files['mainImage'][0].path);
       mainImage = upload.secure_url;
     }
     
-    if (req.files['hoverImage']) {
+    if (req.files && req.files['hoverImage']) {
       const upload = await cloudinary.v2.uploader.upload(req.files['hoverImage'][0].path);
       hoverImage = upload.secure_url;
     }
     
-    if (req.files['images']) {
+    if (req.files && req.files['images']) {
       const uploads = await uploadImages(req.files['images']);
       images = [...currentProduct.images, ...uploads.map(img => img.secure_url)];
     }
