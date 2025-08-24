@@ -48,9 +48,9 @@ export const validateProduct = [
     .isIn(['active', 'featured']).withMessage('Estado inválido'),
   
   // Validar imágenes (solo en creación)
-  body('mainImageFile')
+  body('imageFiles')
     .if(({ req }) => req.method === 'POST')
-    .notEmpty().withMessage('La imagen principal es requerida'),
+    .notEmpty().withMessage('La imagen es requerida'),
   
   // Middleware para manejar errores
   (req, res, next) => {
