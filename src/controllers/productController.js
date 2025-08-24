@@ -83,7 +83,7 @@ export const createProduct = async (req, res) => {
         stock: parseInt(stock), 
         category,
         status: status || 'active',
-        mainImage: mainImageUpload.secure_url,
+        mainImage: mainImageUpload?.secure_url,
         hoverImage: hoverImageUpload?.secure_url,
         images: additionalImages.map(img => img.secure_url)
       },
