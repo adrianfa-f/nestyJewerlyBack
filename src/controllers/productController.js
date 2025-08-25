@@ -67,37 +67,45 @@ export const createProduct = async (req, res) => {
     // Validación específica para productos destacados
     if (status === 'featured') {
       if (!req.files || !req.files['mainImage'] || !req.files['hoverImage'] || 
-          !req.files['images'] || req.files['images'].length === 0) {
+          !req.files['image1']) {
         return res.status(400).json({ 
-          error: 'Los productos destacados requieren mainImage, hoverImage y al menos una imagen en images' 
+          error: 'Los productos destacados requieren mainImage, hoverImage y al menos image1' 
         });
       }
     } else {
       // Validación para productos activos
-      if (!req.files || !req.files['images'] || req.files['images'].length === 0) {
+      if (!req.files || !req.files['image1']) {
         return res.status(400).json({ 
-          error: 'Los productos activos requieren al menos una imagen en images' 
+          error: 'Los productos activos requieren al menos image1' 
         });
       }
     }
 
     let mainImageUrl = null;
     let hoverImageUrl = null;
-    let additionalImagesUrls = [];
+    let image1Url = null;
+    let image2Url = null;
+    let image3Url = null;
+    let image4Url = null;
 
-    // Procesar mainImage si se proporciona (solo para featured)
+    // Procesar imágenes si se proporcionan
     if (req.files && req.files['mainImage']) {
-      mainImageUrl = req.files['mainImage'][0].path; // URL ya generada por Multer
+      mainImageUrl = req.files['mainImage'][0].path;
     }
-
-    // Procesar hoverImage si se proporciona (solo para featured)
     if (req.files && req.files['hoverImage']) {
-      hoverImageUrl = req.files['hoverImage'][0].path; // URL ya generada por Multer
+      hoverImageUrl = req.files['hoverImage'][0].path;
     }
-
-    // Procesar imágenes adicionales
-    if (req.files && req.files['images']) {
-      additionalImagesUrls = req.files['images'].map(file => file.path); // URLs ya generadas por Multer
+    if (req.files && req.files['image1']) {
+      image1Url = req.files['image1'][0].path;
+    }
+    if (req.files && req.files['image2']) {
+      image2Url = req.files['image2'][0].path;
+    }
+    if (req.files && req.files['image3']) {
+      image3Url = req.files['image3'][0].path;
+    }
+    if (req.files && req.files['image4']) {
+      image4Url = req.files['image4'][0].path;
     }
 
     const product = await prisma.product.create({
@@ -111,7 +119,10 @@ export const createProduct = async (req, res) => {
         status: status || 'active',
         mainImage: mainImageUrl,
         hoverImage: hoverImageUrl,
-        images: additionalImagesUrls
+        image1: image1Url,
+        image2: image2Url,
+        image3: image3Url,
+        image4: image4Url
       },
     });
     
@@ -135,7 +146,6 @@ export const updateProduct = async (req, res) => {
   } = req.body;
 
   try {
-    // Obtener producto actual
     const currentProduct = await prisma.product.findUnique({
       where: { id: parseInt(id) }
     });
@@ -146,20 +156,29 @@ export const updateProduct = async (req, res) => {
 
     let mainImage = currentProduct.mainImage;
     let hoverImage = currentProduct.hoverImage;
-    let images = currentProduct.images;
+    let image1 = currentProduct.image1;
+    let image2 = currentProduct.image2;
+    let image3 = currentProduct.image3;
+    let image4 = currentProduct.image4;
 
     // Actualizar imágenes si se proporcionan
     if (req.files && req.files['mainImage']) {
-      mainImage = req.files['mainImage'][0].path; // URL ya generada por Multer
+      mainImage = req.files['mainImage'][0].path;
     }
-
     if (req.files && req.files['hoverImage']) {
-      hoverImage = req.files['hoverImage'][0].path; // URL ya generada por Multer
+      hoverImage = req.files['hoverImage'][0].path;
     }
-
-    if (req.files && req.files['images']) {
-      const newImagesUrls = req.files['images'].map(file => file.path); // URLs ya generadas por Multer
-      images = [...currentProduct.images, ...newImagesUrls];
+    if (req.files && req.files['image1']) {
+      image1 = req.files['image1'][0].path;
+    }
+    if (req.files && req.files['image2']) {
+      image2 = req.files['image2'][0].path;
+    }
+    if (req.files && req.files['image3']) {
+      image3 = req.files['image3'][0].path;
+    }
+    if (req.files && req.files['image4']) {
+      image4 = req.files['image4'][0].path;
     }
 
     const product = await prisma.product.update({
@@ -174,7 +193,10 @@ export const updateProduct = async (req, res) => {
         status,
         mainImage,
         hoverImage,
-        images
+        image1,
+        image2,
+        image3,
+        image4
       },
     });
     

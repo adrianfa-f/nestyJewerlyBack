@@ -19,7 +19,6 @@ router.get('/featured', getFeaturedProducts);
 router.get('/category/:category', getProductsByCategory);
 router.get('/:id', getProductById);
 
-// Actualizar rutas POST y PUT para manejar uploads
 router.post(
   '/', 
   authenticate, 
@@ -27,7 +26,10 @@ router.post(
   upload.fields([
     { name: 'mainImage', maxCount: 1 },
     { name: 'hoverImage', maxCount: 1 },
-    { name: 'images', maxCount: 10 }
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 },
+    { name: 'image3', maxCount: 1 },
+    { name: 'image4', maxCount: 1 }
   ]),
   validateProduct,
   createProduct
@@ -40,7 +42,10 @@ router.put(
   upload.fields([
     { name: 'mainImage', maxCount: 1 },
     { name: 'hoverImage', maxCount: 1 },
-    { name: 'images', maxCount: 10 }
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 },
+    { name: 'image3', maxCount: 1 },
+    { name: 'image4', maxCount: 1 }
   ]),
   validateProduct,
   updateProduct
