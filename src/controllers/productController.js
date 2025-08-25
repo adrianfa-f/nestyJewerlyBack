@@ -55,7 +55,10 @@ export const createProduct = async (req, res) => {
     sku, 
     stock, 
     category, 
-    status 
+    status,
+    material,
+    color,   
+    gender   
   } = req.body;
 
   try {
@@ -122,7 +125,10 @@ export const createProduct = async (req, res) => {
         image1: image1Url,
         image2: image2Url,
         image3: image3Url,
-        image4: image4Url
+        image4: image4Url,
+        material,
+        color,   
+        gender   
       },
     });
     
@@ -142,7 +148,10 @@ export const updateProduct = async (req, res) => {
     sku, 
     stock, 
     category, 
-    status 
+    status,
+    material,
+    color,   
+    gender   
   } = req.body;
 
   try {
@@ -196,7 +205,10 @@ export const updateProduct = async (req, res) => {
         image1,
         image2,
         image3,
-        image4
+        image4,
+        material,
+        color,   
+        gender   
       },
     });
     

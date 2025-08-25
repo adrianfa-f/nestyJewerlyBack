@@ -41,13 +41,25 @@ export const validateProduct = [
     'Dijes y charms',
     'Broches y alfileres'
   ]).withMessage('Categoría inválida'),
-  
-  // Validar estado
+
   body('status')
     .optional()
     .isIn(['active', 'featured']).withMessage('Estado inválido'),
-  
-  // Validar imágenes (solo en creación)
+
+  body('material')
+    .optional()
+    .trim()
+    .isLength({ max: 50 }).withMessage('El material no puede tener más de 50 caracteres'),
+
+  body('color')
+    .optional()
+    .trim()
+    .isLength({ max: 30 }).withMessage('El color no puede tener más de 30 caracteres'),
+
+  body('gender')
+    .optional()
+    .isIn(['hombre', 'mujer', 'unisex', '']).withMessage('Género no válido'),
+
   body('image1File')
     .if(({ req }) => req.method === 'POST')
     .notEmpty().withMessage('La imagen 1 es requerida'),
