@@ -1,3 +1,4 @@
+// schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -22,41 +23,78 @@ model Product {
   image2      String?  
   image3      String?  
   image4      String?  
-  material    String?  // Nuevo campo
-  color       String?  // Nuevo campo
-  gender      String?  // Nuevo campo: hombre, mujer, unisex
+  material    String?  
+  color       String?  
+  gender      String?  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  cartItems    CartItem[]
+  wishlistItems WishlistItem[]
 }
 
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
-  role String @default("customer")
+  role      String   @default("customer")
   createdAt DateTime @default(now())
 
-  orders Order[]
+  cart       Cart?
+  wishlist   Wishlist?
+  orders     Order[]
 }
 
 model Cart {
-  id        Int      @id @default(autoincrement())
-  userId    Int?
-  items     Json
-  createdAt DateTime @default(now())
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model CartItem {
+  id        Int     @id @default(autoincrement())
+  cartId    Int
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int     @default(1)
+  
+  @@unique([cartId, productId])
+}
+
+model Wishlist {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WishlistItem[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model WishlistItem {
+  id        Int     @id @default(autoincrement())
+  wishlistId Int
+  wishlist  Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([wishlistId, productId])
 }
 
 model Order {
   id          Int      @id @default(autoincrement())
-  orderId     String   @unique // ID único para la orden (usaremos UUID)
+  orderId     String   @unique
   userId      Int
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount      Float
   currency    String   @default("EUR")
-  status      String   @default("pending") // pending, completed, failed, refunded
-  paymentId   String?  // ID de pago de Stripe
+  status      String   @default("pending")
+  paymentId   String?
   errorMessage String?
-  metadata    Json?    // Metadata adicional
+  metadata    Json?
   paidAt      DateTime?
   refundedAt  DateTime?
   createdAt   DateTime @default(now())
