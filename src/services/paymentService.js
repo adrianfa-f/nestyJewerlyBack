@@ -1,7 +1,8 @@
 import Stripe from 'stripe';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '../config/db.js';
-/* import { sendConfirmationEmail } from './emailService.js'; */
+import { sendConfirmationEmail, sendOwnerNotification } from './emailService.js';
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -58,6 +59,9 @@ export const handleWebhookEvent = async (rawBody, signature) => {
     throw new Error(`Firma de webhook inválida: ${err.message}`);
   }
 
+  // Registrar el evento recibido
+  console.log(`Received event: ${event.type}`);
+
   // Manejar diferentes tipos de eventos
   switch (event.type) {
     case 'payment_intent.succeeded':
@@ -69,9 +73,12 @@ export const handleWebhookEvent = async (rawBody, signature) => {
     case 'charge.refunded':
       await handleChargeRefunded(event.data.object);
       break;
+    // Puedes añadir más eventos según necesites
     default:
       console.log(`Unhandled event type: ${event.type}`);
   }
+
+  return event;
 };
 
 const handlePaymentSucceeded = async (paymentIntent) => {
@@ -96,8 +103,11 @@ const handlePaymentSucceeded = async (paymentIntent) => {
       return;
     }
 
-    // Enviar email de confirmación
-    /* await sendConfirmationEmail(order.user.email, order); */
+    // Enviar email de confirmación al cliente
+    await sendConfirmationEmail(order.user.email, order);
+
+    // Enviar notificación al dueño
+    await sendOwnerNotification(process.env.OWNER_EMAIL, order);
 
     console.log(`Payment succeeded for order: ${orderId}`);
   } catch (error) {

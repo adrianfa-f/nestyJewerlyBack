@@ -24,7 +24,9 @@ export const createPaymentIntent = async (req, res) => {
 export const handleWebhook = async (req, res) => {
   try {
     const sig = req.headers['stripe-signature'];
-    const rawBody = req.rawBody;
+    
+    // Usamos req.body directamente porque usamos bodyParser.raw
+    const rawBody = req.body;
 
     await handleWebhookEvent(rawBody, sig);
 
