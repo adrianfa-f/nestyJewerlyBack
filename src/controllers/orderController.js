@@ -60,3 +60,24 @@ export const getOrderStats = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const trackOrder = async (req, res) => {
+  try {
+    const { orderNumber, email } = req.body;
+
+    const order = await prisma.order.findFirst({
+      where: {
+        orderNumber: orderNumber,
+        customerEmail: email,
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "Orden no encontrada" });
+    }
+
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
